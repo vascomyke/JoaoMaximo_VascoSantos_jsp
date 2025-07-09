@@ -52,12 +52,12 @@
 	}
 	
 	#botoes{
-		margin:50px;
+		margin:20px;
 	}
   
 	#botao{
 		float:right;
-		margin: 0px 10px 7px 0px;
+		margin: 0px 8px 5px 0px;
 		
 	}
 
@@ -81,6 +81,59 @@
 		font: bold 15px sans-serif;
 		text-decoration:none;
 	}
+
+
+/* Routes container styles */
+	#routes-container {
+		background-color: rgba(255, 255, 255, 0.9);
+		border: 2px solid #0B610B;
+		border-radius: 10px;
+		padding: 20px;
+		margin: 20px auto;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+		max-width: 500px;
+		min-width:400px;
+		position: absolute;
+		left: 50%;
+		top: 60%;
+		transform: translate(-50%, -50%);
+		z-index: 10;
+	}
+
+	#routes-container h3 {
+		color: #004d00;
+		text-align: center;
+		margin-bottom: 15px;
+		font-family: Verdana, sans-serif;
+		text-transform: uppercase;
+	}
+
+	.route-item {
+		background-color: #f9f9f9;
+		border: 1px solid #ddd;
+		border-radius: 5px;
+		padding: 10px;
+		margin: 8px 0;
+		font-family: Arial, sans-serif;
+		font-size: 14px;
+		transition: background-color 0.3s ease;
+	}
+
+	.route-item:hover {
+		background-color: #e8f5e8;
+		cursor: pointer;
+	}
+
+	.route-price {
+		font-weight: bold;
+		color: #088A29;
+		float: right;
+	}
+
+	.route-path {
+		color: #333;
+	}
+	</style>
 </style>
 <body>  
 <div id="cabecalho">
@@ -135,58 +188,102 @@
 							<input type='submit' value='Gestão de Reservas' id='btCorpo'>
 						</form>
 					</div>
+					<div id='botao'>
+							<form action='./pag_carteira.jsp'>
+								<input type='submit' value='Carteira'>
+							</form>
+						</div>
+						<%
+						switch (tipoUtilizador) {
+							case "admin":
+								printGestaoUtilizadores(out);
+								printAlterarDadosPessoais(out);
+								break;
+							case "funcionario":
+								printAlterarDadosPessoais(out);
+								break;
+							case "cliente":
+								printAlterarDadosPessoais(out);
+								break;
+						}
+					} else {
+						out.println("<script>setTimeout(function(){ window.location.href = './logout.jsp'; }, 0)</script>");
+					}
+					
+					%>
 				</div>
 			</div>
-			<%
-			switch (tipoUtilizador) {
-				case "admin":
-					printGestãoUtilizadores(out);
-					printAlterarDadosPessoais(out);
-					out.println("<input type='submit' value='Alterar Dados Pessoais' id='btCorpo' />");
-					out.println("<input type='hidden' name='IdUser' value='" + user + "' />");
-					out.println("</form>");
-					out.println("</div>");
-					out.println("</div>");
-					out.println("</div>");
-					break;
-				case "docente":
-					printAlterarDadosPessoais(out);
-					break;
-				case "aluno":
-					printAlterarDadosPessoais(out);
-					break;
-			}
-		} else {
-			out.println("<script>setTimeout(function(){ window.location.href = './logout.jsp'; }, 0)</script>");
-		}
-		
-		%>
 		
 		<%!
-		void printGestãoUtilizadores(JspWriter out) throws IOException {
-			out.println("<div class='input-div'>");
-			out.println("<div id='botoes'>");
+		void printGestaoUtilizadores(JspWriter out) throws IOException {
 			out.println("<div id='botao'>");
 			out.println("<form action='./pag_gestUtilizadores.jsp'>");
 			out.println("<input type='submit' value='Gestão de Utilizadores' id='btCorpo'>");
 			out.println("</form>");
 			out.println("</div>");
-			out.println("</div>");
-			out.println("</div>");
+
 		}
 		
 		void printAlterarDadosPessoais(JspWriter out) throws IOException {
-			out.println("<div class='input-div'>");
-			out.println("<div id='botoes'>");
 			out.println("<div id='botao'>");
 			out.println("<form method='POST' action='./pag_editarUser.jsp'>");
-			
-			
+			out.println("<input type='submit' value='Alterar Dados Pessoais' id='btCorpo'>");
+			out.println("</form>");
+			out.println("</div>");
 		}
 		%>
 		</div>
     </div>
 </div>
+
+
+<!-- Routes Display Container -->
+<div id="routes-container">
+    <h3>Rotas Disponíveis</h3>
+    <%
+    stmt = null;
+    ResultSet resultrota = null;
+    
+    try {
+        // Debug: Check if connection exists
+        if (conn == null) {
+            out.println("<div class='route-item'>Erro: Conexão com base de dados não estabelecida.</div>");
+        } else {
+            String sqlRota = "SELECT * FROM rota";
+            stmt = conn.createStatement();
+            resultrota = stmt.executeQuery(sqlRota);
+            
+            boolean hasResults = false;
+            while (resultrota.next()) {
+                hasResults = true;
+    %>
+                <div class="route-item">
+                    <span class="route-path"><%= resultrota.getString("origem") %> → <%= resultrota.getString("destino") %></span>
+                    <span class="route-price"><%= resultrota.getString("preco") %> €</span>
+                    <div style="clear: both;"></div>
+                </div>
+    <%
+            }
+            
+            if (!hasResults) {
+    %>
+                <div class="route-item">Nenhuma rota disponível no momento.</div>
+    <%
+            }
+        }
+        
+    } catch (Exception e) {
+        out.println("<div class='route-item'>Erro ao carregar rotas: " + e.getMessage() + "</div>");
+        e.printStackTrace(); // This will help debug in server logs
+    } finally {
+        if (resultrota != null) try { resultrota.close(); } catch (SQLException e) {}
+        if (stmt != null) try { stmt.close(); } catch (SQLException e) {}
+    }
+    %>
+
+</div>
+
+
 <!-- GRAFISMO CABECALHO -->
 <div id="text">
 	<h2>Localização</h2>

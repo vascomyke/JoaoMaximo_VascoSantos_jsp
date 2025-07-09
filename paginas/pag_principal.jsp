@@ -1,4 +1,6 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, java.io.*, java.security.MessageDigest" %>
+<%@ include file="../basedados/basedados.h"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -86,7 +88,58 @@
 		font: bold 15px sans-serif;
 		text-decoration:none;
 	}
-</style>
+
+/* Routes container styles */
+	#routes-container {
+		background-color: rgba(255, 255, 255, 0.9);
+		border: 2px solid #0B610B;
+		border-radius: 10px;
+		padding: 20px;
+		margin: 20px auto;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+		max-width: 500px;
+		min-width:400px;
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 10;
+	}
+
+	#routes-container h3 {
+		color: #004d00;
+		text-align: center;
+		margin-bottom: 15px;
+		font-family: Verdana, sans-serif;
+		text-transform: uppercase;
+	}
+
+	.route-item {
+		background-color: #f9f9f9;
+		border: 1px solid #ddd;
+		border-radius: 5px;
+		padding: 10px;
+		margin: 8px 0;
+		font-family: Arial, sans-serif;
+		font-size: 14px;
+		transition: background-color 0.3s ease;
+	}
+
+	.route-item:hover {
+		background-color: #e8f5e8;
+		cursor: pointer;
+	}
+
+	.route-price {
+		font-weight: bold;
+		color: #088A29;
+		float: right;
+	}
+
+	.route-path {
+		color: #333;
+	}
+	</style>
 <body>  
 <div id="cabecalho">
 	
@@ -129,6 +182,57 @@
 		</div>
 	</div>
 </div>
+
+
+
+<!-- Routes Display Container -->
+<div id="routes-container">
+	<h3>Rotas Disponíveis</h3>
+	<%
+	PreparedStatement pstmtRota = null;
+	ResultSet resultrota = null;
+	
+	try {
+		// Debug: Check if connection exists
+		if (conn == null) {
+			out.println("<div class='route-item'>Erro: Conexão com base de dados não estabelecida.</div>");
+		} else {
+			String sqlRota = "SELECT * FROM rota";
+			pstmtRota = conn.prepareStatement(sqlRota);
+			resultrota = pstmtRota.executeQuery();
+			
+			boolean hasResults = false;
+			while (resultrota.next()) {
+				hasResults = true;
+	%>
+				<div class="route-item">
+					<span class="route-path"><%= resultrota.getString("origem") %> → <%= resultrota.getString("destino") %></span>
+					<span class="route-price"><%= resultrota.getString("preco") %> €</span>
+					<div style="clear: both;"></div>
+				</div>
+	<%
+			}
+			
+			if (!hasResults) {
+	%>
+				<div class="route-item">Nenhuma rota disponível no momento.</div>
+	<%
+			}
+		}
+		
+	} catch (Exception e) {
+		out.println("<div class='route-item'>Erro ao carregar rotas: " + e.getMessage() + "</div>");
+		e.printStackTrace(); // This will help debug in server logs
+	} finally {
+		if (resultrota != null) try { resultrota.close(); } catch (SQLException e) {}
+		if (pstmtRota != null) try { pstmtRota.close(); } catch (SQLException e) {}
+	}
+	%>
+</div>
+
+
+
+
 <!-- GRAFISMO CABECALHO -->
 	<div id="text">
 	<h2>Localização</h2>
