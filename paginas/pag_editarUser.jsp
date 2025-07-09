@@ -125,7 +125,7 @@
              idUser = session_user;
             }
             
-        if ( tipoUtilizador.equals("docente") || tipoUtilizador.equals("aluno") ) {
+        if ( tipoUtilizador.equals("funcionario") || tipoUtilizador.equals("cliente") ) {
             //if (session_rs.next()) {
                 %>
                 Nome de Utilizador: <%= session_rs.getString("nomeUtilizador") %><br><br>
