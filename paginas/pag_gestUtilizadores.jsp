@@ -223,10 +223,10 @@
 						switch (tipo) {
 							case "admin":
 								return "Administrador";
-							case "docente":
-								return "Docente";
-							case "aluno":
-								return "Aluno";
+							case "funcionario":
+								return "Funcionario";
+							case "cliente":
+								return "Cliente";
 							case "cliente_nao_validado":
 								return "Cliente não validado";
 							default:

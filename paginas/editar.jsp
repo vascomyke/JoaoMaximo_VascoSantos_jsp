@@ -34,7 +34,7 @@ if (request.getMethod().equals("POST")) {
     String passNova = request.getParameter("passNova");
     String contactonovo = request.getParameter("contactonovo");
     String mailnovo = request.getParameter("emailnovo");
-    //String tipoUtilizador = request.getParameter("IdUser");
+    
 
 
     if (sessionUser == null){
@@ -71,34 +71,49 @@ if (request.getMethod().equals("POST")) {
         if ( isAdmin && isAdminCountEqualsOne ) {
             %>
             <script>alert('Não pode eliminar o admin sendo o único admin!');</script>
-            <script>window.location.href = 'pag_gestUtilizadores.jsp';</script>
+            <script>window.location.href = 'pag_utilizador.jsp';</script>
             <%
         } else {
-            String selectHorarioQuery = "SELECT idHorario FROM reservaformacao WHERE nomeUtilizador = '" + idUser + "'";
+            String selectHorarioQuery = "SELECT idHorario FROM bilhete WHERE nomeUtilizador = '" + idUser + "'";
             conexao = conn.createStatement();
             horarioRs = conexao.executeQuery(selectHorarioQuery);
             while (horarioRs.next()) {
                 String idHorario = horarioRs.getString("idHorario");
 
-                String updateHorarioQuery = "UPDATE horarioformacao SET inscricoes = inscricoes - 1 WHERE idHorario = '" + idHorario + "'";
+                String updateHorarioQuery = "UPDATE horariorota SET bilhetesReservados = bilhetesReservados - 1 WHERE idHorario = '" + idHorario + "'";
                 conexao = conn.createStatement();
                 rowsAffected = conexao.executeUpdate(updateHorarioQuery);
                 if ( rowsAffected == 0){
                     %>
                     <script>alert('Erro!');</script>
-                    <script>window.location.href = 'pag_gestUtilizadores.jsp';</script>
+                    <script>window.location.href = 'pag_utilizador.jsp';</script>
                     <%
                 }
 
-                String deleteReservasQuery = "DELETE FROM reservaformacao WHERE nomeUtilizador = '" + idUser + "'";
+                String deleteReservasQuery = "DELETE FROM bilhete WHERE nomeUtilizador = '" + idUser + "'";
                 conexao = conn.createStatement();
                 rowsAffected = conexao.executeUpdate(deleteReservasQuery);
                 if ( rowsAffected == 0 ){
                     %>
                     <script>alert('Erro!');</script>
-                    <script>window.location.href = 'pag_gestUtilizadores.jsp';</script>
+                    <script>window.location.href = 'pag_utilizador.jsp';</script>
                     <%
                 }
+            }
+
+            String deleteCarteiraQuery = "DELETE FROM carteira WHERE nomeUtilizador = '" + idUser + "'";
+            conexao = conn.createStatement();
+            rowsAffected = conexao.executeUpdate(deleteCarteiraQuery);
+            if ( rowsAffected == 0 ){
+                %>
+                <script>alert('Erro ao eliminar carteira do utilizador!');</script>
+                <script>window.location.href = 'pag_utilizador.jsp';</script>
+                <%
+            } else {
+                %>
+                <script>alert('Utilizador Eliminado!');</script>
+                <script>window.location.href = 'pag_utilizador.jsp';</script>
+                <%
             }
 
             String deleteUserQuery = "DELETE FROM user WHERE nomeUtilizador = '" + idUser + "'";
@@ -106,13 +121,13 @@ if (request.getMethod().equals("POST")) {
             rowsAffected = conexao.executeUpdate(deleteUserQuery);
             if ( rowsAffected == 0 ){
                 %>
-                <script>alert('Erro!');</script>
-                <script>window.location.href = 'pag_gestUtilizadores.jsp';</script>
+                <script>alert('Erro ao eliminar utilizador!');</script>
+                <script>window.location.href = 'pag_utilizador.jsp';</script>
                 <%
             } else {
                 %>
                 <script>alert('Utilizador Eliminado!');</script>
-                <script>window.location.href = 'pag_gestUtilizadores.jsp';</script>
+                <script>window.location.href = 'pag_utilizador.jsp';</script>
                 <%
             }
 
@@ -120,24 +135,32 @@ if (request.getMethod().equals("POST")) {
     } else if ( editar != null ){
         String updateQuery = "UPDATE user SET ";
         boolean notEmpty = false;
-
+        String oldNome = idUser;
+        
         if ( nomeNovo != null && !nomeNovo.isEmpty() ) {
             updateQuery += "nomeUtilizador = '" + nomeNovo + "', ";
             notEmpty = true;
-            if ( tipoUtilizador.equals("aluno") || tipoUtilizador.equals("docente") || tipoUtilizador.equals("admin") && idUser.equals(sessionUser) )
+            if ( tipoUtilizador.equals("cliente") || tipoUtilizador.equals("funcionario") || (tipoUtilizador.equals("admin") && idUser.equals(sessionUser)) ){  
                 session.setAttribute("user", nomeNovo);
-            if ( tipoUtilizador.equals("aluno") ) {
-                String updateAluno = "UPDATE reservaformacao SET nomeUtilizador = '" + nomeNovo + "' WHERE nomeUtilizador = '" + idUser + "'";
-                conexao = conn.createStatement();
-                rowsAffected = conexao.executeUpdate(updateAluno);
-            } else if ( tipoUtilizador.equals("docente") ) {
-                String updateDocente1 = "UPDATE reservaformacao SET docente = '" + nomeNovo + "' WHERE docente = '" + idUser + "'";
-                String updateDocente2 = "UPDATE formacao SET docente = '" + nomeNovo + "' WHERE docente = '" + idUser + "'";   
-                conexao = conn.createStatement();
-                rowsAffected = conexao.executeUpdate(updateDocente1);
-                rowsAffected = conexao.executeUpdate(updateDocente2);
             }
-        } 
+            if ( tipoUtilizador.equals("cliente") ) {
+                String updateCliente = "UPDATE bilhete SET nomeUtilizador = '" + nomeNovo + "' WHERE nomeUtilizador = '" + oldNome + "'";
+                conexao = conn.createStatement();
+                rowsAffected = conexao.executeUpdate(updateCliente);
+                String updateCarteira = "UPDATE carteira SET nomeUtilizador = '" + nomeNovo + "' WHERE nomeUtilizador = '" + oldNome + "'";
+                conexao = conn.createStatement();
+                rowsAffected = conexao.executeUpdate(updateCarteira);
+            } else if (tipoUtilizador.equals("admin") && idUser.equals(sessionUser)) {
+                
+            } else if ( tipoUtilizador.equals("admin") ) {
+                String updateCliente = "UPDATE bilhete SET nomeUtilizador = '" + nomeNovo + "' WHERE nomeUtilizador = '" + oldNome + "'";
+                conexao = conn.createStatement();
+                rowsAffected = conexao.executeUpdate(updateCliente);
+                String updateCarteira = "UPDATE carteira SET nomeUtilizador = '" + nomeNovo + "' WHERE nomeUtilizador = '" + oldNome + "'";
+                conexao = conn.createStatement();
+                rowsAffected = conexao.executeUpdate(updateCarteira);
+            }
+        }
 
         if ( passNova != null && !passNova.isEmpty() ) {
             passNova = md5Hash(passNova);
@@ -174,7 +197,7 @@ if (request.getMethod().equals("POST")) {
             conexao.close();
             %>
             <script>alert('Erro ao atualizar utilizador!');</script>
-            <script>window.location.href = 'pag_editar.jsp';</script>
+            <script>window.location.href = 'pag_utilizador.jsp';</script>
             <%
         }
     } else {

@@ -197,7 +197,6 @@
 						switch (tipoUtilizador) {
 							case "admin":
 								printGestaoUtilizadores(out);
-								printAlterarDadosPessoais(out);
 								break;
 							case "funcionario":
 								printAlterarDadosPessoais(out);

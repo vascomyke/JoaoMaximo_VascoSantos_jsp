@@ -5,6 +5,11 @@
 
 Statement conexao = null;
 
+if ("POST".equals(request.getMethod()) && request.getParameter("user") == null) {
+    response.sendRedirect("pag_principal.jsp");
+    return;
+}
+
 String user = (String) session.getAttribute("user");
 
 String tipoUtilizador = "";
@@ -44,8 +49,13 @@ try {
             return;
         } else {
             if (user == null){
-                sql = "INSERT INTO user (`nomeUtilizador`, `telemovel`, `email`, `pass`, `tipoUtilizador`) VALUES ('" + nomeUtilizador + "','" + telemovel + "','" + email + "','" + md5Hash(pass) + "','" + "cliente_nao_validado" + "');";
+                sql = "INSERT INTO carteira (`nomeUtilizador`, `saldo`) VALUES ('" + nomeUtilizador + "',0);";
                 int rowsAffected = conexao.executeUpdate(sql);
+                
+                sql = "INSERT INTO user (`nomeUtilizador`, `telemovel`, `email`, `pass`, `tipoUtilizador`) VALUES ('" + nomeUtilizador + "','" + telemovel + "','" + email + "','" + md5Hash(pass) + "','" + "cliente_nao_validado" + "');";
+                rowsAffected = conexao.executeUpdate(sql);
+
+
                 if (rowsAffected > 0){
                     out.println("<script> alert ('Utilizador Criado!') </script>");
                     out.println("<script>  setTimeout(function () { window.location.href = './pag_utilizador.jsp'; }, 0)</script>");

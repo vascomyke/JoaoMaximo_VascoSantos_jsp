@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Editar Reserva</title>
+    <title>Editar Bilhete</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -83,99 +83,156 @@
 <body>
 
 <%
+String sessionUser = (String) session.getAttribute("user");
+String idBilhete = request.getParameter("idBilhete");
+String cliente = request.getParameter("cliente");
 
-    Statement conexao = null;
-    ResultSet rsFormacao = null;
-    ResultSet rs = null;
-
-    String user = (String) session.getAttribute("user");
-
+if (sessionUser == null) {
+%>
+    <script>
+        alert('Autentique-se primeiro!');
+        window.location.href = './pag_principal.jsp';
+    </script>
+<%
+} else {
+    // Get user data
+    String sql = "SELECT * FROM user WHERE nomeUtilizador = '" + sessionUser + "'";
+    Statement stmt = conn.createStatement();
+    ResultSet rsUser = stmt.executeQuery(sql);
+    
     String tipoUtilizador = "";
-    String sql = "SELECT tipoUtilizador FROM user WHERE nomeUtilizador = '" + user + "'";
-    
-    // Execute the query
-    conexao = conn.createStatement();
-    rs = conexao.executeQuery(sql);
-
-    // Retrieve tipoUtilizador
-    if (rs.next()) {
-        tipoUtilizador = rs.getString("tipoUtilizador");
+    if (rsUser.next()) {
+        tipoUtilizador = rsUser.getString("tipoUtilizador");
     }
+    rsUser.close();
+    stmt.close();
     
-    String idReserva = request.getParameter("idReserva");
-    sql = "SELECT nomeUtilizador,nomeFormacao FROM reservaformacao WHERE idReserva = '" + idReserva + "'";
-    conexao = conn.createStatement();
-    rs = conexao.executeQuery(sql);
-    rs.next();
-    String alunoSelecionado = rs.getString("nomeUtilizador");
-    String cursoSelecionado = rs.getString("nomeFormacao");
-
-
-    if (user == null ) {
-        out.println("<script>alert('Autentique-se Primeiro!')</script>");
-        out.println("<script>setTimeout(function () { window.location.href = './pag_principal.jsp'; }, 0)</script>");
-    } else if ( tipoUtilizador.equals("admin") || tipoUtilizador.equals("docente") ) {
-%>
+    // Get all routes
+    String sqlRota = "SELECT * FROM rota";
+    Statement stmtRota = conn.createStatement();
+    ResultSet rsRota = stmtRota.executeQuery(sqlRota);
     
-    <div class="container">
-        <h2>Editar Reserva</h2>
-        <form method="post" action="editarReservaData.jsp">
-            <label for="aluno">Aluno:</label>
-            <select name="aluno" id="aluno" required>
-<%
-            sql = "SELECT nomeUtilizador FROM user WHERE tipoUtilizador = 'aluno'";
-            rs = conexao.executeQuery(sql);
-            while (rs.next()) {
-                String nomeUtilizador = rs.getString("nomeUtilizador");
-                boolean alunoselected = nomeUtilizador.equals(alunoSelecionado);
-                out.println("<option value=\"" + nomeUtilizador + "\"" + (alunoselected ? " selected" : "") + ">" + nomeUtilizador + "</option>");
-            }
-%>
-            </select><br><br>
-            <label for="formacao">Formação:</label>
-            <select name="formacao" id="formacao" required>
-<%
-            sql = "SELECT nomeFormacao FROM formacao";
-            conexao = conn.createStatement();
-            rsFormacao = conexao.executeQuery(sql);
-            while (rsFormacao.next()) {
-                String nomeFormacao = rsFormacao.getString("nomeFormacao");
-                boolean formacaoselected = nomeFormacao.equals(cursoSelecionado);
-                out.println("<option value=\"" + nomeFormacao + "\"" + (formacaoselected ? " selected" : "") + ">" + nomeFormacao + "</option>");
-            }
-%>
-            <input type="hidden" name="idReserva" value="<%= idReserva %>">
-            <input type="submit" name="submit" value="Continuar">
-        </form>
-        <div id="acoes">
-            <div><a href="./pag_utilizador.jsp">Cancelar</a></div>
-        </div>
-    </div>
-<%
-    } else if ( tipoUtilizador.equals("aluno") ) {
-
-        String aluno = user;
+    if (tipoUtilizador.equals("admin") || tipoUtilizador.equals("funcionario")) {
 %>
         <div class="container">
             <h2>Editar Reserva</h2>
-            <form method="post" action="editarReservaData.jsp">
-                <label for="formacao">Formação:</label>
-                <select name="formacao" id="formacao" required>
-<%
-                sql = "SELECT nomeFormacao FROM formacao";
-                conexao = conn.createStatement();
-                rsFormacao = conexao.executeQuery(sql);
-                while (rsFormacao.next()) {
-                    String nomeFormacao = rsFormacao.getString("nomeFormacao");
-                    boolean formacaoselected = nomeFormacao.equals(cursoSelecionado);
-                    out.println("<option value=\"" + nomeFormacao + "\"" + (formacaoselected ? " selected" : "") + ">" + nomeFormacao + "</option>");
-
+            <form method="post" action="reservahorario.jsp">
+                <label for="cliente">Cliente:</label>
+                <select name="cliente" id="cliente" required>
+                <%
+                // Get all clients
+                String sqlClientes = "SELECT nomeUtilizador FROM user WHERE tipoUtilizador = 'cliente'";
+                Statement stmtClientes = conn.createStatement();
+                ResultSet rsClientes = stmtClientes.executeQuery(sqlClientes);
+                
+                while (rsClientes.next()) {
+                    String nomeCliente = rsClientes.getString("nomeUtilizador");
+                    String selected = (nomeCliente.equals(cliente)) ? "selected" : "";
+                %>
+                    <option value="<%= nomeCliente %>" <%= selected %>><%= nomeCliente %></option>
+                <%
                 }
-%>              
+                rsClientes.close();
+                stmtClientes.close();
+                %>
+                </select><br><br>
+                <label for="rota">Rota:</label>
+                <select name="rota" id="rota" required>
+                <%
+                // Get idRota associated with idBilhete
+                String sqlBilhete = "SELECT idHorario FROM bilhete WHERE idBilhete = '" + idBilhete + "'";
+                Statement stmtBilhete = conn.createStatement();
+                ResultSet rsBilhete = stmtBilhete.executeQuery(sqlBilhete);
+                
+                String idRotaSelecionada = "";
+                if (rsBilhete.next()) {
+                    String idHorario = rsBilhete.getString("idHorario");
+                    rsBilhete.close();
+                    stmtBilhete.close();
+                    
+                    String sqlHorario = "SELECT idRota FROM horariorota WHERE idHorario = '" + idHorario + "'";
+                    Statement stmtHorario = conn.createStatement();
+                    ResultSet rsHorario = stmtHorario.executeQuery(sqlHorario);
+                    
+                    if (rsHorario.next()) {
+                        idRotaSelecionada = rsHorario.getString("idRota");
+                    }
+                    rsHorario.close();
+                    stmtHorario.close();
+                }
+                
+                while (rsRota.next()) {
+                    String idRota = rsRota.getString("idRota");
+                    String origem = rsRota.getString("origem");
+                    String destino = rsRota.getString("destino");
+                    String preco = rsRota.getString("preco");
+                    String selected = (idRota.equals(idRotaSelecionada)) ? "selected" : "";
+                %>
+                    <option value="<%= idRota %>" <%= selected %>><%= origem %> > <%= destino %> - <%= preco %> €</option>
+                <%
+                }
+                rsRota.close();
+                stmtRota.close();
+                %>
+                </select>
+                <input type="hidden" name="idBilhete" value="<%= idBilhete %>">
+                <input type="hidden" name="editar" value="true">
+                <input type="submit" name="submit" value="Continuar">
+            </form>
+            <div id="acoes">
+                <div><a href="./pag_utilizador.jsp">Cancelar</a></div>
+            </div>
+        </div>
+<%
+    } else if (tipoUtilizador.equals("cliente")) {
+        cliente = sessionUser;
+%>
+        <div class="container">
+            <h2>Editar Reserva</h2>
+            <form method="post" action="reservahorario.jsp">
+                <label for="rota">Rota:</label>
+                <select name="rota" id="rota" required>
+                <%
+                // Get idRota associated with idBilhete for client
+                String sqlBilheteCliente = "SELECT idHorario FROM bilhete WHERE idBilhete = '" + idBilhete + "'";
+                Statement stmtBilheteCliente = conn.createStatement();
+                ResultSet rsBilheteCliente = stmtBilheteCliente.executeQuery(sqlBilheteCliente);
+                
+                String idRotaSelecionadaCliente = "";
+                if (rsBilheteCliente.next()) {
+                    String idHorario = rsBilheteCliente.getString("idHorario");
+                    rsBilheteCliente.close();
+                    stmtBilheteCliente.close();
+                    
+                    String sqlHorarioCliente = "SELECT idRota FROM horariorota WHERE idHorario = '" + idHorario + "'";
+                    Statement stmtHorarioCliente = conn.createStatement();
+                    ResultSet rsHorarioCliente = stmtHorarioCliente.executeQuery(sqlHorarioCliente);
+                    
+                    if (rsHorarioCliente.next()) {
+                        idRotaSelecionadaCliente = rsHorarioCliente.getString("idRota");
+                    }
+                    rsHorarioCliente.close();
+                    stmtHorarioCliente.close();
+                }
+                
+                while (rsRota.next()) {
+                    String idRota = rsRota.getString("idRota");
+                    String origem = rsRota.getString("origem");
+                    String destino = rsRota.getString("destino");
+                    String preco = rsRota.getString("preco");
+                    String selected = (idRota.equals(idRotaSelecionadaCliente)) ? "selected" : "";
+                %>
+                    <option value="<%= idRota %>" <%= selected %>><%= origem %> > <%= destino %> - <%= preco %> €</option>
+                <%
+                }
+                rsRota.close();
+                stmtRota.close();
+                %>
                 </select>
                 <br>
-                <input type="hidden" name="aluno" value="<%= aluno %>">
-                <input type="hidden" name="idReserva" value="<%= idReserva %>">
+                <input type="hidden" name="cliente" value="<%= cliente %>">
+                <input type="hidden" name="idBilhete" value="<%= idBilhete %>">
+                <input type="hidden" name="editar" value="true">
                 <input type="submit" name="submit" value="Continuar">
             </form>
             <div id="acoes">
@@ -184,7 +241,8 @@
         </div>
 <%
     }
-
+}
 %>
+
 </body>
 </html>

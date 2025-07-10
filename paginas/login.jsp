@@ -66,9 +66,9 @@ if (request.getMethod().equals("POST")) {
         rs.close();
         conexao.close();
         out.println("<script> alert ('Dados invalidos!') </script>");
-        out.println(nomeUtilizador);
-        out.println(pass);
-        out.println("<script>setTimeout(function () { window.location.href = 'logout.jsp'; }, 20000)</script>");
+        //out.println(nomeUtilizador);
+        //out.println(pass);
+        out.println("<script>setTimeout(function () { window.location.href = 'logout.jsp'; }, 200)</script>");
     }
 }
 

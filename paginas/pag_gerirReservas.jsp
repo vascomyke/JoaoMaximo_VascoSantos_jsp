@@ -115,7 +115,7 @@
                 <script> alert ('Autentique-se Primeiro!') </script>
                 <script>  setTimeout(function () { window.location.href = './logout.jsp'; }, 0)</script>
 <%
-    } else if (tipoUtilizador.equals("admin")){
+    } else if (tipoUtilizador.equals("admin") || tipoUtilizador.equals("funcionario")){
         %>
         <div>
             <form action='./pag_novaReserva.jsp'>
@@ -132,41 +132,59 @@
             </div>
             
         <%
-        sql = "SELECT * FROM reservaformacao";
+        sql = "SELECT * FROM bilhete";
         conexao = conn.createStatement();
-        rs = conexao.executeQuery(sql);
+        ResultSet rsBilhete = conexao.executeQuery(sql);
 
-        if (rs.next()){
-            String idReserva = rs.getString("idReserva");
-            String nomeUtilizador = rs.getString("nomeUtilizador");
-            String nomeFormacao = rs.getString("nomeFormacao");
-            String docente = rs.getString("docente");
-            String idHorario = rs.getString("idHorario");
+       
+
+        if (rsBilhete.next()){
+            int idHorario = rsBilhete.getInt("idHorario");
+
+            String sql2 = "SELECT horario,idRota FROM horariorota WHERE idHorario = " + idHorario;
+            conexao = conn.createStatement();
+            ResultSet rsHorario = conexao.executeQuery(sql2);       
+            rsHorario.next();
+
+            int idRota = rsHorario.getInt("idRota");
+
+            String sql3 = "SELECT origem, destino FROM rota WHERE idRota = " + idRota;
+            conexao = conn.createStatement();
+            ResultSet rsRota = conexao.executeQuery(sql3); 
+            
+            rsRota.next();
+
+            int idBilhete = rsBilhete.getInt("idBilhete");
+            String nomeUtilizador = rsBilhete.getString("nomeUtilizador");
+            String origem = rsRota.getString("origem");
+            String destino = rsRota.getString("destino");
+            String horario = rsHorario.getString("horario");
+
             %>
             <div class='container'>
                 <table>
                     <tr><th>ID</th>
-                        <th>Nome Aluno</th>
-                        <th>Formação</th>
-                        <th>Docente</th>
-                        <th>Id Horário</th>
+                        <th>Nome do Cliente</th>
+                        <th>Origem</th>
+                        <th>Destino</th>
+                        <th>Horario</th>
                         <th>Editar</th>
                         <th>Remover</th></tr>
                         <tr>
-                            <td><%= idReserva %></td>
-                            <td><%= nomeUtilizador %></td>
-                        <td><%= nomeFormacao %></td>
-                        <td><%= docente %></td>
-                        <td><%= idHorario %></td>
+                        <td><%= idBilhete %></td>
+                        <td><%= nomeUtilizador %></td>
+                        <td><%= origem %></td>
+                        <td><%= destino %></td>
+                        <td><%= horario %></td>
                         <td>
                             <form method="POST" action="./pag_editarReserva.jsp">
-                                <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
+                                <input type="text" name="idBilhete" value="<%= idBilhete %>" hidden/>
                                 <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
                             </form>
                         </td>
                         <td>
                             <form method="POST" action="./removerReserva.jsp">
-                                <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
+                                <input type="text" name="idBilhete" value="<%= idBilhete %>" hidden/>
                                 <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
                                 <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
                             </form>
@@ -174,36 +192,51 @@
                     </tr>
                     <% 
                     
-                    while (rs.next()) { 
-                        idReserva = rs.getString("idReserva");
-                        nomeUtilizador = rs.getString("nomeUtilizador");
-                        nomeFormacao = rs.getString("nomeFormacao");
-                        docente = rs.getString("docente");
-                        idHorario = rs.getString("idHorario");
+                    while (rsBilhete.next()) { 
+                        idHorario = rsBilhete.getInt("idHorario");
+
+                        sql2 = "SELECT horario,idRota FROM horariorota WHERE idHorario = " + idHorario;
+                        conexao = conn.createStatement();
+                        rsHorario = conexao.executeQuery(sql2);       
+                        rsHorario.next();
+
+                        idRota = rsHorario.getInt("idRota");
+
+                        sql3 = "SELECT origem, destino FROM rota WHERE idRota = " + idRota;
+                        conexao = conn.createStatement();
+                        rsRota = conexao.executeQuery(sql3); 
+                        
+                        rsRota.next();
+
+                        idBilhete = rsBilhete.getInt("idBilhete");
+                        nomeUtilizador = rsBilhete.getString("nomeUtilizador");
+                        origem = rsRota.getString("origem");
+                        destino = rsRota.getString("destino");
+                        horario = rsHorario.getString("horario");
                         %>
                         <tr>
-                    <td><%= idReserva %></td>
-                    <td><%= nomeUtilizador %></td>
-                    <td><%= nomeFormacao %></td>
-                    <td><%= docente %></td>
-                    <td><%= idHorario %></td>
-                    <td>
-                        <form method="POST" action="./pag_editarReserva.jsp">
-                            <input type="hidden" name="idReserva" value="<%= idReserva %>" hidden/>
-                            <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
-                        </form>
-                    </td>
-                    <td>
-                        <form method="POST" action="./removerReserva.jsp">
-                            <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                            <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
-                            <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
-                        </form>
-                    </td>
-                </tr> 
-                <% 
-            }
-            %>
+                            <td><%= idBilhete %></td>
+                            <td><%= nomeUtilizador %></td>
+                            <td><%= origem %></td>
+                            <td><%= destino %></td>
+                            <td><%= horario %></td>
+                            <td>
+                                <form method="POST" action="./pag_editarReserva.jsp">
+                                    <input type="hidden" name="idBilhete" value="<%= idBilhete %>" hidden/>
+                                    <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="./removerReserva.jsp">
+                                    <input type="text" name="idBilhete" value="<%= idBilhete %>" hidden/>
+                                    <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
+                                    <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
+                                </form>
+                            </td>
+                        </tr> 
+                    <% 
+                    }
+                    %>
                 </table>  
             </div>
         <%          
@@ -213,11 +246,8 @@
             </div>
             <% 
         }
-        
-    
-    
-    } else if (tipoUtilizador.equals("docente")) {
-        String docente = sessionUser;
+
+    } else if (tipoUtilizador.equals("cliente")) {
         %>
         <div>
             <form action='./pag_novaReserva.jsp'>
@@ -234,142 +264,61 @@
             </div>
             
         <%
-        sql = "SELECT * FROM reservaformacao WHERE docente = '" + docente + "'";
+        String cliente = sessionUser;
+
+        sql = "SELECT * FROM bilhete WHERE nomeUtilizador = '"+ cliente + "'";
         conexao = conn.createStatement();
-        rs = conexao.executeQuery(sql);
+        ResultSet rsBilhete = conexao.executeQuery(sql);
 
-        if (rs.next()){
-            String idReserva = rs.getString("idReserva");
-            String nomeUtilizador = rs.getString("nomeUtilizador");
-            String nomeFormacao = rs.getString("nomeFormacao");
-            docente = rs.getString("docente");
-            String idHorario = rs.getString("idHorario");
-            %>
-            <div class='container'>
-                <table>
-                    <tr><th>ID</th>
-                        <th>Nome Aluno</th>
-                        <th>Formação</th>
-                        <th>Docente</th>
-                        <th>Id Horário</th>
-                        <th>Editar</th>
-                        <th>Remover</th></tr>
-                        <tr>
-                            <td><%= idReserva %></td>
-                            <td><%= nomeUtilizador %></td>
-                        <td><%= nomeFormacao %></td>
-                        <td><%= docente %></td>
-                        <td><%= idHorario %></td>
-                        <td>
-                            <form method="POST" action="./pag_editarReserva.jsp">
-                                <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                                <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
-                            </form>
-                        </td>
-                        <td>
-                            <form method="POST" action="./removerReserva.jsp">
-                                <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                                <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
-                                <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
-                            </form>
-                        </td>
-                    </tr>
-                    <% 
-                    
-                    while (rs.next()) { 
-                        idReserva = rs.getString("idReserva");
-                        nomeUtilizador = rs.getString("nomeUtilizador");
-                        nomeFormacao = rs.getString("nomeFormacao");
-                        docente = rs.getString("docente");
-                        idHorario = rs.getString("idHorario");
-                        %>
-                        <tr>
-                    <td><%= idReserva %></td>
-                    <td><%= nomeUtilizador %></td>
-                    <td><%= nomeFormacao %></td>
-                    <td><%= docente %></td>
-                    <td><%= idHorario %></td>
-                    <td>
-                        <form method="POST" action="./pag_editarReserva.jsp">
-                            <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                            <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
-                        </form>
-                    </td>
-                    <td>
-                        <form method="POST" action="./removerReserva.jsp">
-                            <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                            <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
-                            <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
-                        </form>
-                    </td>
-                </tr> 
-                <% 
-            }
-            %>
-                </table>  
-            </div>
-        <%          
-        }else { %>
-            <div class='container'>
-            <p>Não há registros de reserva.</p>
-            </div>
-            <% 
-        }
-    } else if (tipoUtilizador.equals("aluno")) {
-    
-        String aluno = sessionUser;
+       
 
-        %>
-        <div>
-            <form action='./pag_novaReserva.jsp'>
-                    <input type='submit' value='Nova Reserva' id='btnNv'>
-            </form>
-            </div>
-            <div class='right-buttons'>
-                <form action='./logout.jsp'>
-                    <input type='submit' value='Logout' id='btnNv'>
-                </form>
-                <form action='./pag_utilizador.jsp'>
-                    <input type='submit' value='Página Inicial' id='btnNv'>
-                </form>
-            </div>
+        if (rsBilhete.next()){
+            int idHorario = rsBilhete.getInt("idHorario");
+
+            String sql2 = "SELECT horario,idRota FROM horariorota WHERE idHorario = " + idHorario;
+            conexao = conn.createStatement();
+            ResultSet rsHorario = conexao.executeQuery(sql2);       
+            rsHorario.next();
+
+            int idRota = rsHorario.getInt("idRota");
+
+            String sql3 = "SELECT origem, destino FROM rota WHERE idRota = " + idRota;
+            conexao = conn.createStatement();
+            ResultSet rsRota = conexao.executeQuery(sql3); 
             
-        <%
-        sql = "SELECT * FROM reservaformacao WHERE nomeUtilizador = '" + aluno + "'";
-        conexao = conn.createStatement();
-        rs = conexao.executeQuery(sql);
+            rsRota.next();
 
-        if (rs.next()){
-            String idReserva = rs.getString("idReserva");
-            String nomeUtilizador = rs.getString("nomeUtilizador");
-            String nomeFormacao = rs.getString("nomeFormacao");
-            String docente = rs.getString("docente");
-            String idHorario = rs.getString("idHorario");
+            int idBilhete = rsBilhete.getInt("idBilhete");
+            String nomeUtilizador = rsBilhete.getString("nomeUtilizador");
+            String origem = rsRota.getString("origem");
+            String destino = rsRota.getString("destino");
+            String horario = rsHorario.getString("horario");
+
             %>
             <div class='container'>
                 <table>
                     <tr><th>ID</th>
-                        <th>Nome Aluno</th>
-                        <th>Formação</th>
-                        <th>Docente</th>
-                        <th>Id Horário</th>
+                        <th>Nome do Cliente</th>
+                        <th>Origem</th>
+                        <th>Destino</th>
+                        <th>Horario</th>
                         <th>Editar</th>
                         <th>Remover</th></tr>
                         <tr>
-                            <td><%= idReserva %></td>
-                            <td><%= nomeUtilizador %></td>
-                        <td><%= nomeFormacao %></td>
-                        <td><%= docente %></td>
-                        <td><%= idHorario %></td>
+                        <td><%= idBilhete %></td>
+                        <td><%= nomeUtilizador %></td>
+                        <td><%= origem %></td>
+                        <td><%= destino %></td>
+                        <td><%= horario %></td>
                         <td>
                             <form method="POST" action="./pag_editarReserva.jsp">
-                                <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
+                                <input type="text" name="idBilhete" value="<%= idBilhete %>" hidden/>
                                 <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
                             </form>
                         </td>
                         <td>
                             <form method="POST" action="./removerReserva.jsp">
-                                <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
+                                <input type="text" name="idBilhete" value="<%= idBilhete %>" hidden/>
                                 <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
                                 <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
                             </form>
@@ -377,36 +326,51 @@
                     </tr>
                     <% 
                     
-                    while (rs.next()) { 
-                        idReserva = rs.getString("idReserva");
-                        nomeUtilizador = rs.getString("nomeUtilizador");
-                        nomeFormacao = rs.getString("nomeFormacao");
-                        docente = rs.getString("docente");
-                        idHorario = rs.getString("idHorario");
+                    while (rsBilhete.next()) { 
+                        idHorario = rsBilhete.getInt("idHorario");
+
+                        sql2 = "SELECT horario,idRota FROM horariorota WHERE idHorario = " + idHorario;
+                        conexao = conn.createStatement();
+                        rsHorario = conexao.executeQuery(sql2);       
+                        rsHorario.next();
+
+                        idRota = rsHorario.getInt("idRota");
+
+                        sql3 = "SELECT origem, destino FROM rota WHERE idRota = " + idRota;
+                        conexao = conn.createStatement();
+                        rsRota = conexao.executeQuery(sql3); 
+                        
+                        rsRota.next();
+
+                        idBilhete = rsBilhete.getInt("idBilhete");
+                        nomeUtilizador = rsBilhete.getString("nomeUtilizador");
+                        origem = rsRota.getString("origem");
+                        destino = rsRota.getString("destino");
+                        horario = rsHorario.getString("horario");
                         %>
                         <tr>
-                    <td><%= idReserva %></td>
-                    <td><%= nomeUtilizador %></td>
-                    <td><%= nomeFormacao %></td>
-                    <td><%= docente %></td>
-                    <td><%= idHorario %></td>
-                    <td>
-                        <form method="POST" action="./pag_editarReserva.jsp">
-                            <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                            <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
-                        </form>
-                    </td>
-                    <td>
-                        <form method="POST" action="./removerReserva.jsp">
-                            <input type="text" name="idReserva" value="<%= idReserva %>" hidden/>
-                            <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
-                            <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
-                        </form>
-                    </td>
-                </tr> 
-                <% 
-            }
-            %>
+                            <td><%= idBilhete %></td>
+                            <td><%= nomeUtilizador %></td>
+                            <td><%= origem %></td>
+                            <td><%= destino %></td>
+                            <td><%= horario %></td>
+                            <td>
+                                <form method="POST" action="./pag_editarReserva.jsp">
+                                    <input type="hidden" name="idBilhete" value="<%= idBilhete %>" hidden/>
+                                    <input type="image" src="./editar.png" alt="Editar" width="50" height="50">
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="./removerReserva.jsp">
+                                    <input type="text" name="idBilhete" value="<%= idBilhete %>" hidden/>
+                                    <input type="text" name="idHorario" value="<%= idHorario %>" hidden/>
+                                    <input type="image" src="./remover.png" alt="Remover" width="50" height="50">
+                                </form>
+                            </td>
+                        </tr> 
+                    <% 
+                    }
+                    %>
                 </table>  
             </div>
         <%          

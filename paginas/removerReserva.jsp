@@ -1,57 +1,93 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, java.io.*, java.security.MessageDigest" %>
-<%@ include file="../basedados/basedados.h"%>
+<%@ page import="java.sql.*" %>
+<%@ include file="../basedados/basedados.h" %>
+
 <%
-
-Statement conexao = null;
-
-int rowsAffected = 0;
-
 String sessionUser = (String) session.getAttribute("user");
 
-//ResultSet rs = null;
-
-String tipoUtilizador = "";
-String sql = "SELECT * FROM user WHERE nomeUtilizador = '" + sessionUser + "'";
-
-// Execute the query
-conexao = conn.createStatement();
-ResultSet session_rs = conexao.executeQuery(sql);
-
-// Retrieve tipoUtilizador
-if (session_rs.next()) {
-    tipoUtilizador = session_rs.getString("tipoUtilizador");
-}
-
-if (sessionUser == null){
-    %>
-            <script> alert ('Autentique-se Primeiro!') </script>
-            <script>  setTimeout(function () { window.location.href = './logout.jsp'; }, 0)</script>
-            <%
-} else {
-
-    String idReserva = request.getParameter("idReserva");
+if (sessionUser != null) {
+    String idBilhete = request.getParameter("idBilhete");
     String idHorario = request.getParameter("idHorario");
-
-    String removerSql = "DELETE FROM reservaformacao WHERE idReserva = '" + idReserva + "'";
-    String updateQuery = "UPDATE horarioformacao SET inscricoes = inscricoes - 1 WHERE idHorario = '" + idHorario + "'";
-
-
-    conexao = conn.createStatement();
-    int remover = conexao.executeUpdate(removerSql);
-    int update = conexao.executeUpdate(updateQuery);
-
-    if (remover > 0 && update > 0){
-        out.println ("<script>alert('Reserva removida!');</script>");
-        conexao.close();
-        out.println ("<script>setTimeout(function() { window.location.href = 'pag_gerirReservas.jsp'; }, 0);</script>");
-
-    } else {
-        out.println ("<script>alert('Erro ao remover reserva!');</script>");
-        conexao.close();
-        out.println ("<script>setTimeout(function() { window.location.href = 'pag_gerirReservas.jsp'; }, 0);</script>");
-
+    
+    Statement stmt = null;
+    ResultSet rs = null;
+    
+    try {
+        // Get preco e nomeUtilizador do bilhete antes de eliminar
+        String getInfoSql = "SELECT preco, nomeUtilizador FROM bilhete WHERE idBilhete = " + idBilhete;
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(getInfoSql);
+        
+        if (rs.next()) {
+            double preco = rs.getDouble("preco");
+            String nomeUtilizador = rs.getString("nomeUtilizador");
+            
+            rs.close();
+            stmt.close();
+            
+            // Dar refund do preco ao utilizador
+            String updateCarteiraSql = "UPDATE carteira SET saldo = saldo + " + preco + " WHERE nomeUtilizador = '" + nomeUtilizador + "'";
+            stmt = conn.createStatement();
+            stmt.executeUpdate(updateCarteiraSql);
+            stmt.close();
+            
+            // Deduzir preco da carteira de FelixBus
+            String deduzirFelixBusSql = "UPDATE carteira SET saldo = saldo - " + preco + " WHERE nomeUtilizador = 'FelixBus'";
+            stmt = conn.createStatement();
+            stmt.executeUpdate(deduzirFelixBusSql);
+            stmt.close();
+        }
+        
+        // Remover o bilhete
+        String removerSql = "DELETE FROM bilhete WHERE idBilhete = " + idBilhete;
+        stmt = conn.createStatement();
+        int deletedRows = stmt.executeUpdate(removerSql);
+        stmt.close();
+        
+        // Atualizar o número de bilhetes reservados
+        String updateQuery = "UPDATE horariorota SET bilhetesReservados = bilhetesReservados - 1 WHERE idHorario = '" + idHorario + "'";
+        stmt = conn.createStatement();
+        int updatedRows = stmt.executeUpdate(updateQuery);
+        stmt.close();
+        
+        if (deletedRows > 0 && updatedRows > 0) {
+%>
+            <script>
+                alert('Reserva removida!');
+                setTimeout(function() { 
+                    window.location.href = 'pag_gerirReservas.jsp'; 
+                }, 0);
+            </script>
+<%
+        } else {
+%>
+            <script>
+                alert('Erro ao remover reserva!');
+                setTimeout(function() { 
+                    window.location.href = 'pag_gerirReservas.jsp'; 
+                }, 0);
+            </script>
+<%
+        }
+        
+    } catch (SQLException e) {
+        e.printStackTrace();
+%>
+        <script>
+            alert('Erro ao remover reserva!');
+            setTimeout(function() { 
+                window.location.href = 'pag_gerirReservas.jsp'; 
+            }, 0);
+        </script>
+<%
+    } finally {
+        // Fechar recursos
+        if (rs != null) {
+            try { rs.close(); } catch (SQLException e) { }
+        }
+        if (stmt != null) {
+            try { stmt.close(); } catch (SQLException e) { }
+        }
     }
 }
-
 %>

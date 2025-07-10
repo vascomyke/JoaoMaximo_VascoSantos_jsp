@@ -108,17 +108,17 @@
         %>
         <script>alert('A sua conta ainda não foi validada! Tente novamente mais tarde.'); window.location.href = './pag_principal.jsp';</script>
         <%
-    } else if ( tipoUtilizador.equals("admin") || tipoUtilizador.equals("docente") ) {
+    } else if ( tipoUtilizador.equals("admin") || tipoUtilizador.equals("funcionario") ) {
 
         %>
         <div class="container">
-            <h2>Nova Reserva</h2>
-            <form method="post" action="reservadata.jsp">
-                <label for="aluno">aluno:</label>
-                <select name="aluno" id="aluno" required>
+            <h2>Comprar Bilhete</h2>
+            <form method="post" action="reservahorario.jsp">
+                <label for="cliente">Cliente:</label>
+                <select name="cliente" id="cliente" required>
         <%
 
-        sql = "SELECT nomeUtilizador FROM user WHERE tipoUtilizador = 'aluno'";
+        sql = "SELECT nomeUtilizador FROM user WHERE tipoUtilizador = 'cliente'";
         conexao = conn.createStatement();
 	    rs = conexao.executeQuery(sql);
         
@@ -130,12 +130,24 @@
         %>
 
                 </select><br><br>
-                <label for="formacao">Formação:</label>
-                <select name="formacao" id="formacao" required>
-                    <option value="operadorInformatica">Operador de Informática</option>
-                    <option value="gestaoRedesSociais">Gestão de Redes Sociais</option>
-                    <option value="pintorConstrucaoCivil">Pintor de Construção Civil</option>
-                    <option value="operadorLogistica">Operador de Logística</option>
+                <label for="rota">Rota:</label>
+                <select name="rota" id="rota" required>
+                
+                <%
+                sql = "SELECT * FROM rota";
+                conexao = conn.createStatement();
+                rs = conexao.executeQuery(sql);
+                while(rs.next()){
+                    int idRota = rs.getInt("idRota");
+                    String origem = rs.getString("origem");
+                    String destino = rs.getString("destino");
+                    double preco = rs.getDouble("preco");
+                %>
+                    <option value="<%= idRota %>"><%= origem %> > <%= destino %> - <%= preco %> €</option>
+                <%
+                }
+                %>
+
                 </select>
                 <br>
                 <input type="submit" name="submit" value="Continuar">
@@ -145,27 +157,38 @@
             </div>
         </div>
         <%
-    }else if ( tipoUtilizador.equals("aluno") ) {
-        String aluno = user;
+    }else if ( tipoUtilizador.equals("cliente") ) {
+        String cliente = user;
    
     %>
     <div class="container">
-        <h2>Nova Reserva</h2>
-        <form method="post" action="reservadata.jsp">
-            <label for="formacao">Formação:</label>
-            <select name="formacao" id="formacao" required>
-                <option value="operadorInformatica">Operador de Informática</option>
-                <option value="gestaoRedesSociais">Gestão de Redes Sociais</option>
-                <option value="pintorConstrucaoCivil">Pintor de Construção Civil</option>
-                <option value="operadorLogistica">Operador de Logística</option>
-            </select>
+        <h2>Comprar Bilhete</h2>
+        <form method="post" action="reservahorario.jsp">
+            <label for="rota">Rota:</label>
+                <select name="rota" id="rota" required>
+                
+                <%
+                sql = "SELECT * FROM rota";
+                conexao = conn.createStatement();
+                rs = conexao.executeQuery(sql);
+                while(rs.next()){
+                    int idRota = rs.getInt("idRota");
+                    String origem = rs.getString("origem");
+                    String destino = rs.getString("destino");
+                    double preco = rs.getDouble("preco");
+                %>
+                    <option value="<%= idRota %>"><%= origem %> > <%= destino %> - <%= preco %> €</option>
+                <%
+                }
+                %>
+
+                </select>
             <br>
-            <input type="hidden" name="aluno" value="<%= aluno %>">
+            <input type="hidden" name="cliente" value="<%= cliente %>">
             <input type="submit" name="submit" value="Continuar">
         </form>
         <div id="acoes">
-            <div><a href="./pag_utilizador.jsp">Cancelar</a></div>
-        </div>
+        <div><a href="./pag_utilizador.jsp">Cancelar</a></div>
     </div>
     <%
     }
