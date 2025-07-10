@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 12-Jun-2024 às 10:35
+-- Tempo de geração: 10-Jul-2025 às 23:10
 -- Versão do servidor: 10.4.32-MariaDB
 -- versão do PHP: 8.2.12
 
@@ -18,72 +18,96 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Banco de dados: `gestaocursos`
+-- Banco de dados: `gestaoautocarros`
 --
-CREATE DATABASE gestaocursos;
-USE gestaocursos;
+CREATE DATABASE gestaoautocarros;
+USE gestaoautocarros;
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `formacao`
+-- Estrutura da tabela `bilhete`
 --
 
-CREATE TABLE `formacao` (
-  `nomeFormacao` varchar(100) NOT NULL,
-  `docente` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Extraindo dados da tabela `formacao`
---
-
-INSERT INTO `formacao` (`nomeFormacao`, `docente`) VALUES
-('gestaoRedesSociais', 'docente'),
-('operadorInformatica', 'docente'),
-('operadorLogistica', 'docente'),
-('pintorConstrucaoCivil', 'docente');
-
--- --------------------------------------------------------
-
---
--- Estrutura da tabela `horarioformacao`
---
-
-CREATE TABLE `horarioformacao` (
-  `idHorario` int(11) NOT NULL,
-  `nomeFormacao` varchar(100) NOT NULL,
-  `horario` varchar(100) NOT NULL,
-  `inscricoes` int(100) NOT NULL,
-  `limiteinscricoes` int(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Extraindo dados da tabela `horarioformacao`
---
-
-INSERT INTO `horarioformacao` (`idHorario`, `nomeFormacao`, `horario`, `inscricoes`, `limiteinscricoes`) VALUES
-(1, 'operadorLogistica', 'Segunda-Feira : 10:00h', 0, 20),
-(2, 'operadorLogistica', 'Quarta-Feira : 14:00h', 0, 20),
-(3, 'pintorConstrucaoCivil', 'Terça-Feira : 11:00h', 0, 20),
-(4, 'pintorConstrucaoCivil', 'Quinta-Feira : 16:00h', 0, 20),
-(5, 'gestaoRedesSociais', 'Quarta-Feira : 16:00h', 0, 20),
-(6, 'gestaoRedesSociais', 'Sexta-Feira : 17:00h', 0, 20),
-(7, 'operadorInformatica', 'Segunda-Feira : 14:00h', 0, 1),
-(8, 'operadorInformatica', 'Quinta-Feira : 10:00h', 0, 20);
-
--- --------------------------------------------------------
-
---
--- Estrutura da tabela `reservaformacao`
---
-
-CREATE TABLE `reservaformacao` (
-  `idReserva` int(100) NOT NULL,
+CREATE TABLE `bilhete` (
+  `idBilhete` int(10) NOT NULL,
+  `idHorario` int(10) NOT NULL,
   `nomeUtilizador` varchar(100) NOT NULL,
-  `nomeFormacao` varchar(100) NOT NULL,
-  `docente` varchar(100) NOT NULL,
-  `idHorario` int(11) NOT NULL
+  `preco` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `carteira`
+--
+
+CREATE TABLE `carteira` (
+  `idCarteira` int(11) NOT NULL,
+  `nomeUtilizador` varchar(100) NOT NULL,
+  `saldo` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Extraindo dados da tabela `carteira`
+--
+
+INSERT INTO `carteira` (`idCarteira`, `nomeUtilizador`, `saldo`) VALUES
+(2, 'FelixBus', 1000),
+(13, 'cliente', 10);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `horariorota`
+--
+
+CREATE TABLE `horariorota` (
+  `idHorario` int(10) NOT NULL,
+  `idRota` int(10) NOT NULL,
+  `horario` varchar(100) NOT NULL,
+  `bilhetesReservados` int(10) NOT NULL,
+  `limiteBilhetes` int(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Extraindo dados da tabela `horariorota`
+--
+
+INSERT INTO `horariorota` (`idHorario`, `idRota`, `horario`, `bilhetesReservados`, `limiteBilhetes`) VALUES
+(1, 1, 'Dia 05 : Quinta-Feira : 15:00h', 0, 40),
+(2, 1, 'Dia 02 : Segunda-Feira : 10:00h', 0, 49),
+(3, 2, 'Dia 04 : Quarta-Feira : 14:30h', 0, 40),
+(4, 2, 'Dia 03 : Terça-Feira : 11:00h', 0, 49),
+(5, 3, 'Dia 02 : Segunda-Feira : 17:00h', 0, 49),
+(6, 3, 'Dia 03 : Terça-Feira : 16:00h', 0, 49),
+(7, 4, 'Dia 06 : Sexta-Feira : 10:00h', 0, 40),
+(8, 4, 'Dia 04 : Quarta-Feira : 19:00h', 0, 49),
+(9, 5, 'Dia 05 : Quinta-Feira : 18:00h', 0, 49),
+(10, 5, 'Dia 02 : Segunda-Feira : 19:00h', 0, 40);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura da tabela `rota`
+--
+
+CREATE TABLE `rota` (
+  `idRota` int(10) NOT NULL,
+  `origem` varchar(60) NOT NULL,
+  `destino` varchar(60) NOT NULL,
+  `preco` int(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Extraindo dados da tabela `rota`
+--
+
+INSERT INTO `rota` (`idRota`, `origem`, `destino`, `preco`) VALUES
+(1, 'Castelo Branco', 'Coimbra', 9),
+(2, 'Lisboa', 'Castelo Branco', 12),
+(3, 'Coimbra', 'Porto', 12),
+(4, 'Castelo Branco', 'Aveiro', 11),
+(5, 'Évora', 'Santarém', 11);
 
 -- --------------------------------------------------------
 
@@ -104,31 +128,37 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`nomeUtilizador`, `pass`, `email`, `telemovel`, `tipoUtilizador`) VALUES
-('admin', '21232f297a57a5a743894a0e4a801fc3', 'admin@gmail.com', 123456789, 'admin'),
-('aluno', 'ca0cd09a12abade3bf0777574d9f987f', 'aluno@gmail.com', 960000000, 'aluno'),
-('docente', 'ac99fecf6fcb8c25d18788d14a5384ee', 'docente@gmail.com', 987987987, 'docente');
+('admin', '21232f297a57a5a743894a0e4a801fc3', 'admin@admin', 1234, 'admin'),
+('cliente', '4983a0ab83ed86e0e7213c8783940193', 'cliente@gmail.com', 96000123, 'cliente'),
+('funcionario', 'cc7a84634199040d54376793842fe035', 'funcionario@gmail.com', 960000002, 'funcionario');
 
 --
 -- Índices para tabelas despejadas
 --
 
 --
--- Índices para tabela `formacao`
+-- Índices para tabela `bilhete`
 --
-ALTER TABLE `formacao`
-  ADD PRIMARY KEY (`nomeFormacao`);
+ALTER TABLE `bilhete`
+  ADD PRIMARY KEY (`idBilhete`);
 
 --
--- Índices para tabela `horarioformacao`
+-- Índices para tabela `carteira`
 --
-ALTER TABLE `horarioformacao`
+ALTER TABLE `carteira`
+  ADD PRIMARY KEY (`idCarteira`);
+
+--
+-- Índices para tabela `horariorota`
+--
+ALTER TABLE `horariorota`
   ADD PRIMARY KEY (`idHorario`);
 
 --
--- Índices para tabela `reservaformacao`
+-- Índices para tabela `rota`
 --
-ALTER TABLE `reservaformacao`
-  ADD PRIMARY KEY (`idReserva`);
+ALTER TABLE `rota`
+  ADD PRIMARY KEY (`idRota`);
 
 --
 -- Índices para tabela `user`
@@ -141,16 +171,28 @@ ALTER TABLE `user`
 --
 
 --
--- AUTO_INCREMENT de tabela `horarioformacao`
+-- AUTO_INCREMENT de tabela `bilhete`
 --
-ALTER TABLE `horarioformacao`
-  MODIFY `idHorario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+ALTER TABLE `bilhete`
+  MODIFY `idBilhete` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
--- AUTO_INCREMENT de tabela `reservaformacao`
+-- AUTO_INCREMENT de tabela `carteira`
 --
-ALTER TABLE `reservaformacao`
-  MODIFY `idReserva` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+ALTER TABLE `carteira`
+  MODIFY `idCarteira` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT de tabela `horariorota`
+--
+ALTER TABLE `horariorota`
+  MODIFY `idHorario` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de tabela `rota`
+--
+ALTER TABLE `rota`
+  MODIFY `idRota` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
